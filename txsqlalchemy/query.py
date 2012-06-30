@@ -1,5 +1,5 @@
 from sqlalchemy.sql import and_, or_, not_
-from sqlalchemy.sql.expression import between, extract, column, desc, asc
+from sqlalchemy.sql.expression import between, extract, column, desc, asc, select
 from twisted.internet import defer
 
 
@@ -92,18 +92,22 @@ class Query(object):
     def update(self, **kwargs):
         """ Updates all rows that match the query """
         expr = self.model.update().where(self.query).values(**kwargs)
+        return self._runquery(expr)
 
     def delete(self):
         """ Deletes all rows that match the query """
         expr = self.model.delete().where(self.query)
+        return self._runquery(expr)
 
     def exists(self):
         expr = exists().where(self.query)
+        return self._runquery(expr)
 
     def _runquery(self, expression):
+        print "_runquery"
         sql = expression.compile()
         print sql
-        return defer.success([])
+        return defer.succeed([])
         return dbpool.runQuery(sql)
 
     @defer.inlineCallbacks

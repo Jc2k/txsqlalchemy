@@ -1,5 +1,6 @@
 
 from twisted.trial.unittest import TestCase
+from twisted.internet import defer
 from txsqlalchemy import Model, Column, String, Integer
 from txsqlalchemy.model import ModelType
 
