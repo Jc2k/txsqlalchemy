@@ -1,0 +1,8 @@
+*.egg-info
+*.pyc
+_trial_temp
+bin
+include
+lib
+local
+
