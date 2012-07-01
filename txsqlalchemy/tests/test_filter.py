@@ -63,3 +63,25 @@ class TestFiltering(TestCase):
         self.Model.objects.filter(date__isnull = False)
 
 
+class TestChain(TestCase):
+
+    def setUp(self):
+        ModelType.reset()
+        class FooBar(Model):
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            date = Column(String)
+        self.Model = FooBar
+
+    def test_filter_then_exclude(self):
+        self.Model.objects.filter(id__range = (0, 20)).exclude(id=5)
+
+    def test_exclude_then_filter(self):
+        self.Model.objects.exclude(id=5).filter(id__range = (0, 20))
+
+    def test_filter_then_filter(self):
+        self.Model.objects.filter(id=5).filter(id__range = (0, 20))
+
+    def test_exclude_then_exclude(self):
+        self.Model.objects.exclude(id=5).exclude(id__range = (0, 20))
+

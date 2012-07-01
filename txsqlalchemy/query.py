@@ -15,9 +15,7 @@ class Query(object):
         q = Query(self.model)
         return q
 
-    def filter(self, **terms):
-        q = self._clone()
-
+    def _filter(self, **terms):
         filters = []
         for k, v in terms.items():
             if not "__" in k:
@@ -64,13 +62,22 @@ class Query(object):
             else:
                 raise KeyError("Invalid comparison type %s" % comparison)
 
-        q.query = and_(*filters)
+        return and_(*filters)
 
+    def filter(self, **terms):
+        q = self._clone()
+        query = self._filter(**terms)
+        if self.query is not None:
+            query = and_(self.query, query)
+        q.query = query
         return q
 
     def exclude(self, **terms):
         q = self._clone()
-        q.query = not_(self.query)
+        query = not_(self._filter(**terms))
+        if self.query is not None:
+            query = and_(self.query, query)
+        q.query = query
         return q
 
     def order_by(self, terms):
