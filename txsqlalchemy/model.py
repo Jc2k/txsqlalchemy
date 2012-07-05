@@ -67,11 +67,11 @@ class Model(object):
 
     @classmethod
     def create(cls):
-        #from sqlalchemy import create_engine
         from sqlalchemy.schema import CreateTable
+        sql = CreateTable(cls.__table__).compile()
 
-        #sql_url = "sqlite:///:memory:"    
-        #db_engine = create_engine(sql_url)
-
-        return CreateTable(cls.__table__).compile()
+    @classmethod
+    def drop(cls):
+        from sqlalchemy.schema import DropTable
+        sql = DropTable(cls.__table__).compile()
 

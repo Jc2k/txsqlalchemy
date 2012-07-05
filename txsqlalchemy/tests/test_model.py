@@ -25,3 +25,26 @@ class TestSave(TestCase):
         foo.a = '1'
         yield foo.save()
 
+
+class TestCreate(TestCase):
+
+    def test_create(self):
+        ModelType.reset()
+
+        class Foo(Model):
+            a = Column(String)
+
+        Foo.create()
+
+
+class TestDrop(TestCase):
+
+    def test_drop(self):
+        ModelType.reset()
+
+        class Foo(Model):
+            a = Column(String)
+
+        Foo.drop()
+
+
