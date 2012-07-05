@@ -2,15 +2,13 @@
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
-from txsqlalchemy import Model, Column, String
-from txsqlalchemy.model import ModelType
+from txsqlalchemy import Column, String, model_base
 
 class TestSave(TestCase):
 
     def setUp(self):
-        ModelType.reset()
-
-        class Foo(Model):
+        Base = model_base()
+        class Foo(Base):
             a = Column(String)
         self.Model = Foo
 
@@ -29,9 +27,8 @@ class TestSave(TestCase):
 class TestCreate(TestCase):
 
     def test_create(self):
-        ModelType.reset()
-
-        class Foo(Model):
+        Base = model_base()
+        class Foo(Base):
             a = Column(String)
 
         Foo.create()
@@ -40,9 +37,8 @@ class TestCreate(TestCase):
 class TestDrop(TestCase):
 
     def test_drop(self):
-        ModelType.reset()
-
-        class Foo(Model):
+        Base = model_base()
+        class Foo(Base):
             a = Column(String)
 
         Foo.drop()

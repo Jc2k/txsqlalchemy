@@ -1,14 +1,13 @@
 
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
-from txsqlalchemy import Model, Column, String, Integer
-from txsqlalchemy.model import ModelType
+from txsqlalchemy import Column, String, Integer, model_base
 
 class TestFiltering(TestCase):
 
     def setUp(self):
-        ModelType.reset()
-        class FooBar(Model):
+        Base = model_base()
+        class FooBar(Base):
             id = Column(Integer, primary_key=True)
             name = Column(String)
             date = Column(String)
@@ -66,8 +65,8 @@ class TestFiltering(TestCase):
 class TestChain(TestCase):
 
     def setUp(self):
-        ModelType.reset()
-        class FooBar(Model):
+        Base = model_base()
+        class FooBar(Base):
             id = Column(Integer, primary_key=True)
             name = Column(String)
             date = Column(String)
