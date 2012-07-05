@@ -1,65 +1,100 @@
 
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
-from txsqlalchemy import Column, String, Integer, model_base
+from txsqlalchemy import Column, DateTime, String, Integer, model_base
 
 class TestFiltering(TestCase):
 
-    def setUp(self):
+    @defer.inlineCallbacks
+    def setUpModel(self):
         Base = model_base()
+        Base.bind("sqlite://")
         class FooBar(Base):
             id = Column(Integer, primary_key=True)
             name = Column(String)
-            date = Column(String)
-        self.Model = FooBar
+            date = Column(DateTime)
+        yield FooBar.create()
+        defer.returnValue(FooBar)
 
+    @defer.inlineCallbacks
     def test_simple(self):
-        self.Model.objects.filter(name = "John")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name = "John").select()
 
+    @defer.inlineCallbacks
     def test_exact(self):
-        self.Model.objects.filter(name__exact="John")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__exact="John").select()
 
+    @defer.inlineCallbacks
     def test_day(self):
-        self.Model.objects.filter(date__day = 5)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__day = 5).select()
 
+    @defer.inlineCallbacks
     def test_month(self):
-        self.Model.objects.filter(date__month = 5)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__month = 5).select()
 
+    @defer.inlineCallbacks
     def test_year(self):
-        self.Model.objects.filter(date__year = 2005)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__year = 2005).select()
 
+    @defer.inlineCallbacks
     def test_week_date(self):
-        self.Model.objects.filter(date__week_date = 5)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__week_date = 5).select()
 
+    @defer.inlineCallbacks
     def test_in(self):
-        self.Model.objects.filter(name__in=(1,2,3))
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__in=(1,2,3)).select()
 
+    @defer.inlineCallbacks
     def test_contains(self):
-        self.Model.objects.filter(name__contains='oh')
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__contains='oh').select()
 
+    @defer.inlineCallbacks
     def test_icontains(self):
-        self.Model.objects.filter(name__icontains='oh')
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__icontains='oh').select()
 
+    @defer.inlineCallbacks
     def test_startswith(self):
-        self.Model.objects.filter(name__startswith = "J")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__startswith = "J").select()
 
+    @defer.inlineCallbacks
     def test_istartswith(self):
-        self.Model.objects.filter(name__istartswith = "J")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__istartswith = "J").select()
 
+    @defer.inlineCallbacks
     def test_endswith(self):
-        self.Model.objects.filter(name__endswith = "n")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__endswith = "n").select()
 
+    @defer.inlineCallbacks
     def test_iendswith(self):
-        self.Model.objects.filter(name__iendswith = "n")
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(name__iendswith = "n").select()
 
+    @defer.inlineCallbacks
     def test_range(self):
-        self.Model.objects.filter(id__range = (0, 20))
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(id__range = (0, 20)).select()
 
+    @defer.inlineCallbacks
     def test_isnull(self):
-        self.Model.objects.filter(date__isnull = True)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__isnull = True).select()
 
+    @defer.inlineCallbacks
     def test_notisnull(self):
-        self.Model.objects.filter(date__isnull = False)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(date__isnull = False).select()
 
 
 class TestChain(TestCase):

@@ -26,21 +26,24 @@ class TestSave(TestCase):
 
 class TestCreate(TestCase):
 
+    @defer.inlineCallbacks
     def test_create(self):
         Base = model_base()
+        Base.bind("sqlite://")
         class Foo(Base):
             a = Column(String)
-
-        Foo.create()
+        yield Foo.create()
 
 
 class TestDrop(TestCase):
 
+    @defer.inlineCallbacks
     def test_drop(self):
         Base = model_base()
+        Base.bind("sqlite://")
         class Foo(Base):
             a = Column(String)
-
-        Foo.drop()
+        yield Foo.create()
+        yield Foo.drop()
 
 

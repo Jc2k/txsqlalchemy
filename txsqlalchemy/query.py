@@ -24,20 +24,20 @@ class Query(object):
                 k, comparison = k.split("__")
 
             try:
-                column = getattr(self.model.c, k)
+                column = getattr(self.model.__table__.c, k)
             except AttributeError:
                 raise KeyError("Invalid key '%s'" % k)
            
             if comparison == "exact":
                 filters.append(column == v)
             elif comparison == "day":
-                filters.append(extract(column, 'day') == v)
+                filters.append(extract('day', column) == v)
             elif comparison == "month":
-                filters.append(extract(column, 'month') == v)
+                filters.append(extract('month', column) == v)
             elif comparison == "year":
-                filters.append(extract(column, 'year') == v)
+                filters.append(extract('year', column) == v)
             elif comparison == "week_date":
-                filters.append(extract(column, 'dow') == v)
+                filters.append(extract('dow', column) == v)
             elif comparison == "in":
                 filters.append(column.in_(v))
             elif comparison == "contains":
@@ -98,30 +98,23 @@ class Query(object):
 
     def update(self, **kwargs):
         """ Updates all rows that match the query """
-        expr = self.model.update().where(self.query).values(**kwargs)
+        expr = self.model.__table__.update().where(self.query).values(**kwargs)
         return self._runquery(expr)
 
     def delete(self):
         """ Deletes all rows that match the query """
-        expr = self.model.delete().where(self.query)
+        expr = self.model.__table__.delete().where(self.query)
         return self._runquery(expr)
 
     def exists(self):
         expr = exists().where(self.query)
         return self._runquery(expr)
 
+    def select(self):
+        return self._runquery(select('*').where(self.query))
+
     def _runquery(self, expression):
-        print "_runquery"
-        sql = expression.compile()
+        sql = expression.compile(dialect=self.model.connection.dialect)
         print sql
-        return defer.succeed([])
-        return dbpool.runQuery(sql)
-
-    @defer.inlineCallbacks
-    def _iterator(self):
-        results = yield self._runquery(select().where(self.query))
-        defer.returnValue(results)
-
-    def addBoth(self, callback, *args, **kwargs):
-        return self._iterator().addBoth(callback, *args, **kwargs)
+        return self.model.connection.run(str(sql), sql.params)
 

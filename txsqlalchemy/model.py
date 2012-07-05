@@ -1,6 +1,8 @@
 
 import sqlalchemy
 from .query import Query
+from .connection import Connection, NoConnection
+
 
 class Objects(object):
     def __init__(self, model):
@@ -34,9 +36,8 @@ class ModelType(type):
 
         attrs.setdefault("__tablename__", class_name.lower())
         attrs["__table__"] = t = sqlalchemy.Table(attrs["__tablename__"], bases[0].__metadata__, *columns)
-        attrs["objects"] = Objects(t)
-
         cls = type.__new__(meta, class_name, bases, attrs)
+        cls.objects = Objects(cls)
 
         #cls.__args__ = []
         #for b in bases:
@@ -52,6 +53,8 @@ class ModelType(type):
 
 class _Model(object):
 
+    connection = NoConnection()
+
     def __init__(self, **kwargs):
         pass
 
@@ -59,15 +62,20 @@ class _Model(object):
         pass
 
     @classmethod
+    def bind(cls, uri):
+        cls.connection = Connection(uri)
+
+    @classmethod
     def create(cls):
         from sqlalchemy.schema import CreateTable
         sql = CreateTable(cls.__table__).compile()
+        return cls.connection.run(str(sql))
 
     @classmethod
     def drop(cls):
         from sqlalchemy.schema import DropTable
         sql = DropTable(cls.__table__).compile()
-
+        return cls.connection.run(str(sql))
 
 def model_base():
     class Base(_Model):
