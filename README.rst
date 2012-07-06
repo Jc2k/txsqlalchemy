@@ -52,6 +52,30 @@ Consider you were writing a twisted view::
         @defer.inlineCallbacks
         def content(self, ...):
             rows = yield MyCar.objects.filter(name="Kitt").select()
+            for row in rows:
+                print row.name, row.mfr, row.date
+
+You can also exclude rows::
+
+    class SomeView(HtmlResource):
+
+        @defer.inlineCallbacks
+        def content(self, ...):
+            rows = yield MyCar.objects.exclude(name="Kitt").select()
+            for row in rows:
+                print row.name, row.mfr, row.date
+
+
+And of course, filters can be chained::
+
+    class SomeView(HtmlResource):
+
+        @defer.inlineCallbacks
+        def content(self, ...):
+            rows = yield MyCar.objects.filter(name="Kitt").exclude(year=2010).select()
+            for row in rows:
+                print row.name, row.mfr, row.date
+
 
 
 Updates
