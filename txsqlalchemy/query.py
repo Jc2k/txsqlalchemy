@@ -114,7 +114,5 @@ class Query(object):
         return self._runquery(select('*').where(self.query))
 
     def _runquery(self, expression):
-        sql = expression.compile(dialect=self.model.connection.dialect)
-        print sql
-        return self.model.connection.run(str(sql), sql.params)
+        return self.model.connection.run(expression)
 

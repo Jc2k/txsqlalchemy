@@ -68,14 +68,14 @@ class _Model(object):
     @classmethod
     def create(cls):
         from sqlalchemy.schema import CreateTable
-        sql = CreateTable(cls.__table__).compile()
-        return cls.connection.run(str(sql))
+        sql = CreateTable(cls.__table__)
+        return cls.connection.run(sql)
 
     @classmethod
     def drop(cls):
         from sqlalchemy.schema import DropTable
-        sql = DropTable(cls.__table__).compile()
-        return cls.connection.run(str(sql))
+        sql = DropTable(cls.__table__)
+        return cls.connection.run(sql)
 
 def model_base():
     class Base(_Model):

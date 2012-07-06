@@ -99,23 +99,34 @@ class TestFiltering(TestCase):
 
 class TestChain(TestCase):
 
-    def setUp(self):
+    @defer.inlineCallbacks
+    def setUpModel(self):
         Base = model_base()
+        Base.bind("sqlite://")
         class FooBar(Base):
             id = Column(Integer, primary_key=True)
             name = Column(String)
-            date = Column(String)
-        self.Model = FooBar
+            date = Column(DateTime)
+        yield FooBar.create()
+        defer.returnValue(FooBar)
 
+    @defer.inlineCallbacks
     def test_filter_then_exclude(self):
-        self.Model.objects.filter(id__range = (0, 20)).exclude(id=5)
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(id__range = (0, 20)).exclude(id=5).select()
 
+    @defer.inlineCallbacks
     def test_exclude_then_filter(self):
-        self.Model.objects.exclude(id=5).filter(id__range = (0, 20))
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.exclude(id=5).filter(id__range = (0, 20)).select()
 
+    @defer.inlineCallbacks
     def test_filter_then_filter(self):
-        self.Model.objects.filter(id=5).filter(id__range = (0, 20))
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.filter(id=5).filter(id__range = (0, 20)).select()
 
+    @defer.inlineCallbacks
     def test_exclude_then_exclude(self):
-        self.Model.objects.exclude(id=5).exclude(id__range = (0, 20))
+        FooBar = yield self.setUpModel()
+        results = yield FooBar.objects.exclude(id=5).exclude(id__range = (0, 20)).select()
 
