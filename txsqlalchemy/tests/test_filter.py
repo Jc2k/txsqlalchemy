@@ -23,12 +23,14 @@ class TestFiltering(TestCase):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name = "John").select()
         self.assertEqual(len(results), 1)
-        #self.assertEqual(results[0], "John")
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_exact(self):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name__exact="John").select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_day(self):
@@ -53,37 +55,58 @@ class TestFiltering(TestCase):
     @defer.inlineCallbacks
     def test_in(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(name__in=(1,2,3)).select()
+        results = yield FooBar.objects.filter(id__in=(1,2,3)).select()
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].name, "John")
+        self.assertEqual(results[1].name, "Alex")
 
     @defer.inlineCallbacks
     def test_contains(self):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name__contains='oh').select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
+
+    #@defer.inlineCallbacks
+    #def test_contains_is_case_sensitive(self):
+    #    FooBar = yield self.setUpModel()
+    #    results = yield FooBar.objects.filter(name__contains='OH').select()
+    #    self.assertEqual(len(results), 0)
 
     @defer.inlineCallbacks
     def test_icontains(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(name__icontains='oh').select()
+        results = yield FooBar.objects.filter(name__icontains='OH').select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_startswith(self):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name__startswith = "J").select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_istartswith(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(name__istartswith = "J").select()
+        results = yield FooBar.objects.filter(name__istartswith = "j").select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_endswith(self):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name__endswith = "n").select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_iendswith(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(name__iendswith = "n").select()
+        results = yield FooBar.objects.filter(name__iendswith = "N").select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_range(self):

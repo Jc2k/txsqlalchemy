@@ -45,13 +45,13 @@ class Query(object):
             elif comparison == "icontains":
                 filters.append(column.ilike("%" + v + "%"))
             elif comparison == "startswith":
-                filters.append(column.endswith(v))
+                filters.append(column.startswith(v))
             elif comparison == "istartswith":
                 filters.append(column.ilike(v + "%"))
             elif comparison == "endswith":
                 filters.append(column.endswith(v))
             elif comparison == "iendswith":
-                filters.append("%" + column.ilike(v))
+                filters.append(column.ilike("%" + v))
             elif comparison == "range":
                 filters.append(between(column, v[0], v[1]))
             elif comparison == "isnull":
@@ -110,8 +110,17 @@ class Query(object):
         expr = exists().where(self.query)
         return self._runquery(expr)
 
+    @defer.inlineCallbacks
     def select(self):
-        return self._runquery(select('*').where(self.query))
+        columns = [column(c.name) for c in self.model.__table__.columns]
+        results = yield self._runquery(select(columns).where(self.query))
+        final = []
+        for result in results:
+            r = self.model()
+            for k, v in zip([c.name for c in columns], result):
+                setattr(r, k, v)
+            final.append(r)
+        defer.returnValue(final)
 
     def _runquery(self, expression):
         return self.model.connection.run(expression)
