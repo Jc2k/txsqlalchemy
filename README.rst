@@ -2,6 +2,10 @@
 txsqlalchemy
 ============
 
+I couldn't find a nice way to do SQLite or Postgres in Twisted. For me, nice is
+the Django ORM. But without that settings.py stuff. And that integrates nicely
+with twisted Deferred's and ideally ``twisted.enterprise.adapi``.
+
 The package provides a lightweight ORM abstraction on top of the sqlalchemy
 expression language that is Twisted defer friendly and uses the twisted DB
 layer to execute SQL.
@@ -77,7 +81,6 @@ And of course, filters can be chained::
                 print row.name, row.mfr, row.date
 
 
-
 Updates
 =======
 
@@ -97,4 +100,5 @@ You can delete stuff::
     def delete_some_things():
         yield MyCar.objects.filter(type="SUV").delete()
         print "All SUV's have been from the world"
+
 
