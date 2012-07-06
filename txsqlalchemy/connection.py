@@ -52,7 +52,7 @@ class Connection(object):
         compiled = expression.compile(dialect=self.dialect)
         bound = self._bind(compiled, self.dialect)
         bound = bound[0] if bound else []
-        print str(compiled)
+        #print str(compiled)
         return self.pool.runQuery(str(compiled), bound, *args, **kwargs)
 
 

@@ -14,12 +14,16 @@ class TestFiltering(TestCase):
             name = Column(String)
             date = Column(DateTime)
         yield FooBar.create()
+        yield FooBar.insert(name = "John")
+        yield FooBar.insert(name = "Alex")
         defer.returnValue(FooBar)
 
     @defer.inlineCallbacks
     def test_simple(self):
         FooBar = yield self.setUpModel()
         results = yield FooBar.objects.filter(name = "John").select()
+        self.assertEqual(len(results), 1)
+        #self.assertEqual(results[0], "John")
 
     @defer.inlineCallbacks
     def test_exact(self):

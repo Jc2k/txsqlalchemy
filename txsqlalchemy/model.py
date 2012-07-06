@@ -77,6 +77,12 @@ class _Model(object):
         sql = DropTable(cls.__table__)
         return cls.connection.run(sql)
 
+    @classmethod
+    def insert(cls, **kwargs):
+        expression = cls.__table__.insert().values(**kwargs)
+        return cls.connection.run(expression)
+
+
 def model_base():
     class Base(_Model):
         __metadata__ = sqlalchemy.MetaData()
