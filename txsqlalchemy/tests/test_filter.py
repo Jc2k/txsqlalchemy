@@ -154,25 +154,34 @@ class TestChain(TestCase):
             name = Column(String)
             date = Column(DateTime)
         yield FooBar.create()
+        yield FooBar.insert(name = "John", date=datetime.date(year=1900, month=1, day=12))
+        yield FooBar.insert(name = "Alex", date=datetime.date(year=2005, month=1, day=1))
         defer.returnValue(FooBar)
 
     @defer.inlineCallbacks
     def test_filter_then_exclude(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(id__range = (0, 20)).exclude(id=5).select()
+        results = yield FooBar.objects.filter(id__range = (0, 20)).exclude(id=2).select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
     def test_exclude_then_filter(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.exclude(id=5).filter(id__range = (0, 20)).select()
+        results = yield FooBar.objects.exclude(id=1).filter(id__range = (0, 20)).select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "Alex")
 
     @defer.inlineCallbacks
     def test_filter_then_filter(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.filter(id=5).filter(id__range = (0, 20)).select()
+        results = yield FooBar.objects.filter(id=2).filter(id__range = (0, 20)).select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "Alex")
 
     @defer.inlineCallbacks
     def test_exclude_then_exclude(self):
         FooBar = yield self.setUpModel()
-        results = yield FooBar.objects.exclude(id=5).exclude(id__range = (0, 20)).select()
+        results = yield FooBar.objects.exclude(id=1).exclude(id__range = (0, 20)).select()
+        self.assertEqual(len(results), 0)
 
