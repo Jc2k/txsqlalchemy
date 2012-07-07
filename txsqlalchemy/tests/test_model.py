@@ -6,10 +6,13 @@ from txsqlalchemy import Column, String, model_base
 
 class TestSave(TestCase):
 
+    @defer.inlineCallbacks
     def setUp(self):
         Base = model_base()
+        Base.bind("sqlite://")
         class Foo(Base):
             a = Column(String)
+        yield Foo.create()
         self.Model = Foo
 
     @defer.inlineCallbacks

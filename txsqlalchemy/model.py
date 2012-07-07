@@ -1,3 +1,4 @@
+from twisted.internet import defer
 
 import sqlalchemy
 from .query import Query
@@ -62,10 +63,23 @@ class _Model(object):
     connection = NoConnection()
 
     def __init__(self, **kwargs):
-        pass
+        self._changes = {}
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self._is_new_record = True
 
+    @defer.inlineCallbacks
     def save(self):
-        pass
+        changes = {}
+        if self._is_new_record:
+            yield self.insert(**changes)
+        else:
+           #.where(self.query)
+           expr =  cls.__table__.update().values(**changes)
+           yield self.connection.run(expr)
+
+        self._changes = {}
+        self._is_new_record = False
 
     @classmethod
     def bind(cls, uri):

@@ -127,9 +127,8 @@ class Query(object):
         results = yield self._runquery(expr)
         final = []
         for result in results:
-            r = self.model()
-            for k, v in zip(columns, result):
-                setattr(r, k, v)
+            r = self.model(**dict(zip(columns, result)))
+            r._is_new_record = False
             final.append(r)
         defer.returnValue(final)
 
