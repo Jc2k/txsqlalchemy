@@ -26,6 +26,27 @@ class TestSave(TestCase):
         foo.a = '1'
         yield foo.save()
 
+        results = yield self.Model.objects.all().select()
+        self.assertEqual(results[0].a, '1')
+
+    @defer.inlineCallbacks
+    def test_save_then_update(self):
+        foo = self.Model()
+        foo.a = '1'
+        yield foo.save()
+
+        results = yield self.Model.objects.all().select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].a, '1')
+
+        results[0].a = '234'
+        yield results[0].save()
+
+        results = yield self.Model.objects.all().select()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].a, '234')
+
+
 
 class TestCreate(TestCase):
 

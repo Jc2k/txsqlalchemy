@@ -23,9 +23,21 @@ class Objects(object):
 
 
 class Column(object):
+
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+
+    def as_column(self, name):
+        self.column = sqlalchemy.Column(name, *self.args, **self.kwargs)
+        self.name = name
+        return self.column
+
+    def __set__(self, instance, value):
+        instance._changes[self.name] = value
+
+    def __get__(self, instance, owner):
+        return instance._changes[self.name]
 
 
 class ModelType(type):
@@ -37,9 +49,7 @@ class ModelType(type):
         columns = []
         for attr, col in attrs.items():
             if isinstance(col, Column):
-                c = sqlalchemy.Column(attr, *col.args, **col.kwargs)
-                columns.append(c)
-                del attrs[attr]
+                columns.append(col.as_column(attr))
 
         attrs.setdefault("__tablename__", class_name.lower())
         attrs["__table__"] = t = sqlalchemy.Table(attrs["__tablename__"], bases[0].__metadata__, *columns)
@@ -70,12 +80,11 @@ class _Model(object):
 
     @defer.inlineCallbacks
     def save(self):
-        changes = {}
         if self._is_new_record:
-            yield self.insert(**changes)
+            yield self.insert(**self._changes)
         else:
            #.where(self.query)
-           expr =  cls.__table__.update().values(**changes)
+           expr =  self.__table__.update().values(**self._changes)
            yield self.connection.run(expr)
 
         self._changes = {}
