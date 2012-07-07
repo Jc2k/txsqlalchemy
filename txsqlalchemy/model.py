@@ -14,6 +14,9 @@ class Objects(object):
     def exclude(self, **kwargs):
         return Query(self.model).exclude(**kwargs)
 
+    def all(self):
+        return Query(self.model)
+
 
 class Column(object):
     def __init__(self, *args, **kwargs):

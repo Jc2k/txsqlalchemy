@@ -112,12 +112,15 @@ class Query(object):
 
     @defer.inlineCallbacks
     def select(self):
-        columns = [column(c.name) for c in self.model.__table__.columns]
-        results = yield self._runquery(select(columns).where(self.query))
+        columns = [c.name for c in self.model.__table__.columns]
+        expr = select([self.model.__table__])
+        if self.query is not None:
+            expr = expr.where(self.query)
+        results = yield self._runquery(expr)
         final = []
         for result in results:
             r = self.model()
-            for k, v in zip([c.name for c in columns], result):
+            for k, v in zip(columns, result):
                 setattr(r, k, v)
             final.append(r)
         defer.returnValue(final)

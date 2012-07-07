@@ -47,3 +47,24 @@ class TestDrop(TestCase):
         yield Foo.drop()
 
 
+class TestInsert(TestCase):
+
+    @defer.inlineCallbacks
+    def test_insert_row(self):
+        Base = model_base()
+        Base.bind("sqlite://")
+        class Foo(Base):
+            abx = Column(String)
+        yield Foo.create()
+
+        results = yield Foo.objects.all().select()
+        self.assertEqual(len(results), 0)
+
+        yield Foo.insert(abx="1")
+        results = yield Foo.objects.all().select()
+        self.assertEqual(len(results), 1)
+        
+        yield Foo.insert(abx="33")
+        results = yield Foo.objects.all().select()
+        self.assertEqual(len(results), 2)
+ 
