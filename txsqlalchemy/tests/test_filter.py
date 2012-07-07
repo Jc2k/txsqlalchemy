@@ -185,3 +185,19 @@ class TestChain(TestCase):
         results = yield FooBar.objects.exclude(id=1).exclude(id__range = (0, 20)).select()
         self.assertEqual(len(results), 0)
 
+
+class TestCount(TestCase):
+
+    @defer.inlineCallbacks
+    def test_case(self):
+        Base = model_base()
+        Base.bind("sqlite://")
+        class FooBar(Base):
+            id = Column(Integer, primary_key=True)
+        yield FooBar.create()
+        yield FooBar.insert()
+        yield FooBar.insert()
+        count = yield FooBar.objects.count()
+        self.assertEquals(count, 2)
+
+

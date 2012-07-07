@@ -1,5 +1,5 @@
 from sqlalchemy.sql import and_, or_, not_
-from sqlalchemy.sql.expression import between, extract, column, desc, asc, select
+from sqlalchemy.sql.expression import func, between, extract, column, desc, asc, select
 from twisted.internet import defer
 
 
@@ -109,6 +109,14 @@ class Query(object):
     def exists(self):
         expr = exists().where(self.query)
         return self._runquery(expr)
+
+    @defer.inlineCallbacks
+    def count(self):
+        expr = select([func.count(self.model.__table__.c.id)])
+        if self.query is not None:
+            expr = expr.where(self.query)
+        results = yield self._runquery(expr)
+        defer.returnValue(results[0][0])
 
     @defer.inlineCallbacks
     def select(self):

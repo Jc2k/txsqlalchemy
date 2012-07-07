@@ -17,6 +17,9 @@ class Objects(object):
     def all(self):
         return Query(self.model)
 
+    def count(self):
+        return self.all().count()
+
 
 class Column(object):
     def __init__(self, *args, **kwargs):
