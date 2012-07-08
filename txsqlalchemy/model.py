@@ -9,17 +9,23 @@ class Objects(object):
     def __init__(self, model):
         self.model = model
 
-    def filter(self, **kwargs):
-        return Query(self.model).filter(**kwargs)
-
-    def exclude(self, **kwargs):
-        return Query(self.model).exclude(**kwargs)
-
-    def all(self):
+    def get_query_set(self):
         return Query(self.model)
 
+    def filter(self, **kwargs):
+        return self.get_query_set().filter(**kwargs)
+
+    def exclude(self, **kwargs):
+        return self.get_query_set().exclude(**kwargs)
+
+    def all(self):
+        return self.get_query_set()
+
     def count(self):
-        return self.all().count()
+        return self.get_query_set().count()
+
+    def __getitem__(self, idx):
+        return self.get_query_set()[idx]
 
 
 class ModelType(type):
