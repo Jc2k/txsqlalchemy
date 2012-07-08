@@ -1,29 +1,14 @@
 
-from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
 from txsqlalchemy import Column, Integer, String, ForeignKey, model_base
 
-class TestRelationships(TestCase):
+from .base import FixtureTestCase, TestCase
+from .fixtures import Cocktails
 
-    @defer.inlineCallbacks
-    def setUp(self):
-        Base = model_base()
-        Base.bind("sqlite://")
+class TestRelationships(FixtureTestCase):
 
-        class Drink(Base):
-            id = Column(Integer, primary_key=True)
-            name = Column(String)
-        yield Drink.create()
-        yield Drink.insert(name = "Long Island Ice Tea")
-        self.Drink = Drink
-
-        class Ingredient(Base):
-            id = Column(Integer, primary_key=True)
-            name = Column(String)
-            drink = ForeignKey("drink.id")
-        yield Ingredient.create()
-        self.Ingredient = Ingredient
+    __fixture__ = Cocktails
 
     @defer.inlineCallbacks
     def test_children_all(self):

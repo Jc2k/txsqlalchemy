@@ -1,8 +1,9 @@
 
-from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 from txsqlalchemy import Column, DateTime, String, Integer, model_base
 import datetime
+
+from .base import FixtureTestCase, TestCase
 
 class TestFiltering(TestCase):
 

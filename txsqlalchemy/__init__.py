@@ -1,5 +1,7 @@
 
-from sqlalchemy import ForeignKey, Integer, String, Date, DateTime, Time
+from sqlalchemy import Integer, String, Date, DateTime, Time
 
-from txsqlalchemy.model import Column, model_base
+
+from txsqlalchemy.columns import Column, ForeignKey
+from txsqlalchemy.model import model_base
 

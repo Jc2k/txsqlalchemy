@@ -50,7 +50,7 @@ class ForeignChildrenProxy(object):
 class ForeignKey(object):
 
     def __init__(self, *args, **kwargs):
-        self.args = [Integer, sqlalchemy.ForeignKey(args[0])] + args[1:]
+        self.args = [sqlalchemy.Integer, sqlalchemy.ForeignKey(args[0])] + list(args[1:])
         self.kwargs = kwargs
 
     def __set__(self, instance, value):
