@@ -2,7 +2,35 @@
 from twisted.trial.unittest import TestCase
 from twisted.internet import defer
 
-from txsqlalchemy import Column, String, model_base
+from txsqlalchemy import Column, Integer, String, ForeignKey, model_base
+
+class TestRelationships(TestCase):
+
+    @defer.inlineCallbacks
+    def setUp(self):
+        Base = model_base()
+        Base.bind("sqlite://")
+
+        class Drink(Base):
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+        yield Drink.create()
+        yield Drink.insert(name = "Long Island Ice Tea")
+        self.Drink = Drink
+
+        class Ingredient(Base):
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            drink = ForeignKey("drink.id")
+        yield Ingredient.create()
+        self.Ingredient = Ingredient
+
+    @defer.inlineCallbacks
+    def test_children_all(self):
+        drinks = yield self.Drink.objects.all().select()
+        drink = drinks[0]
+        #ingredients = yield drink.ingredients.all()
+
 
 class TestSave(TestCase):
 

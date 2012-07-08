@@ -3,7 +3,7 @@ from twisted.internet import defer
 import sqlalchemy
 from .query import Query
 from .connection import Connection, NoConnection
-from .column_proxy import Scalar, ForeignChildren
+from .columns import BaseColumn, Column, ForeignKey
 
 class Objects(object):
     def __init__(self, model):
@@ -22,31 +22,6 @@ class Objects(object):
         return self.all().count()
 
 
-class Column(object):
-
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-    def as_column(self, name):
-        self.column = sqlalchemy.Column(name, *self.args, **self.kwargs)
-        self.name = name
-        if self.column.foreign_keys:
-            self.proxy = ForeignChildren(self)
-        else:
-            self.proxy = Scalar(self)
-        return self.column
-
-    def _construct(self, instance, value):
-        self.proxy._construct(instance, value)
-
-    def __set__(self, instance, value):
-        self.proxy._set(instance, value)
-
-    def __get__(self, instance, owner):
-        return self.proxy._get(instance)
-
-
 class ModelType(type):
 
     def __new__(meta, class_name, bases, attrs):
@@ -56,7 +31,7 @@ class ModelType(type):
         attrs["__columns__"] = c = {}
         columns = []
         for attr, col in attrs.items():
-            if isinstance(col, Column):
+            if isinstance(col, BaseColumn):
                 columns.append(col.as_column(attr))
                 c[attr] = col
 
@@ -64,15 +39,6 @@ class ModelType(type):
         attrs["__table__"] = t = sqlalchemy.Table(attrs["__tablename__"], bases[0].__metadata__, *columns)
         cls = type.__new__(meta, class_name, bases, attrs)
         cls.objects = Objects(cls)
-
-        #cls.__args__ = []
-        #for b in bases:
-        #    if hasattr(b, "__args__"):
-        #        cls.__args__.extend(b.__args__)
-
-        #for key, value in new_attrs.items():
-        #    if isinstance(value, Argument):
-        #        cls.__args__.append(key)
 
         return cls
 
