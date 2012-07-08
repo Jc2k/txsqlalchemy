@@ -3,7 +3,7 @@ from twisted.internet import defer
 import sqlalchemy
 from .query import Query
 from .connection import Connection, NoConnection
-
+from .column_proxy import Scalar, ForeignChildren
 
 class Objects(object):
     def __init__(self, model):
@@ -31,13 +31,20 @@ class Column(object):
     def as_column(self, name):
         self.column = sqlalchemy.Column(name, *self.args, **self.kwargs)
         self.name = name
+        if self.column.foreign_keys:
+            self.proxy = ForeignChildren(self)
+        else:
+            self.proxy = Scalar(self)
         return self.column
 
+    def _construct(self, instance, value):
+        self.proxy._construct(instance, value)
+
     def __set__(self, instance, value):
-        instance._changes[self.name] = value
+        self.proxy._set(instance, value)
 
     def __get__(self, instance, owner):
-        return instance._changes[self.name]
+        return self.proxy._get(instance)
 
 
 class ModelType(type):
@@ -46,10 +53,12 @@ class ModelType(type):
         if class_name == "Base":
             return type.__new__(meta, class_name, bases, attrs)
 
+        attrs["__columns__"] = c = {}
         columns = []
         for attr, col in attrs.items():
             if isinstance(col, Column):
                 columns.append(col.as_column(attr))
+                c[attr] = col
 
         attrs.setdefault("__tablename__", class_name.lower())
         attrs["__table__"] = t = sqlalchemy.Table(attrs["__tablename__"], bases[0].__metadata__, *columns)
@@ -77,6 +86,11 @@ class _Model(object):
         for k, v in kwargs.items():
             setattr(self, k, v)
         self._is_new_record = True
+
+    def _construct(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__columns__[k]._construct(self, v)
+        self._is_new_record = False
 
     @defer.inlineCallbacks
     def save(self):
