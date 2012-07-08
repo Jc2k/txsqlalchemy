@@ -142,6 +142,33 @@ class TestChain(FixtureTestCase):
         self.assertEqual(len(results), 0)
 
 
+class TestSlice(FixtureTestCase):
+
+    __fixture__ = fixtures.FooBarBaz
+
+    @defer.inlineCallbacks
+    def test_start_no_stop(self):
+        results = yield self.FooBar.objects[1:].select()
+        self.assertEqual(len(results), 3)
+        self.assertEqual(results[0].name, "Alex")
+        self.assertEqual(results[1].name, "Timothy")
+        self.assertEqual(results[2].name, "Peter")
+
+    @defer.inlineCallbacks
+    def test_no_start_stop(self):
+        results = yield self.FooBar.objects[:2].select()
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].name, "John")
+        self.assertEqual(results[1].name, "Alex")
+
+    @defer.inlineCallbacks
+    def test_no_start_no_stop(self):
+        results = yield self.FooBar.objects[2:2].select()
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].name, "Timothy")
+        self.assertEqual(results[1].name, "Peter")
+
+
 class TestCount(FixtureTestCase):
 
     __fixture__ = fixtures.FooBarBaz

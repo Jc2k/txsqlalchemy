@@ -10,6 +10,8 @@ class Query(object):
     def __init__(self, model, query=None):
         self.model = model
         self.query = query
+        self.offset = None
+        self.limit = None
 
     def _clone(self):
         q = Query(self.model)
@@ -96,6 +98,14 @@ class Query(object):
 
         return q
 
+    def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            q = self._clone()
+            q.offset = idx.start
+            q.limit = idx.stop
+            return q
+        raise IndexError("Invalid splice")
+
     def update(self, **kwargs):
         """ Updates all rows that match the query """
         expr = self.model.__table__.update().where(self.query).values(**kwargs)
@@ -124,6 +134,10 @@ class Query(object):
         expr = select([self.model.__table__])
         if self.query is not None:
             expr = expr.where(self.query)
+        if self.limit:
+            expr = expr.limit(self.limit)
+        if self.offset:
+            expr = expr.offset(self.offset)
         results = yield self._runquery(expr)
         final = []
         for result in results:
