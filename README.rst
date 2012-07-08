@@ -46,6 +46,27 @@ Equally, dropping a table looks like this::
 And again.. it returns a deferred.
 
 
+Creating objects
+================
+
+Import the model class you wanted to create objects from and pass it kwargs.
+Call ``save`` to asychronously commit to the database::
+
+    from .models import Blog
+    b = Blog(name="Ash Blog", tagline="All the latest Ash news")
+    yield b.save()
+
+Behind the scenes this will trigger an ``INSERT`` SQL query. This happens when
+(and only when) you explicitly call ``save``.
+
+The ``save`` method returns a ``Deferred``. The callback doesn't have a specifc
+return value.
+
+To create an object and save it one go you can use the ``insert`` method.
+
+    b = yield Blog.insert(name="Ash Blog", tagline="All the latest Ash news")
+
+
 Filters
 =======
 
