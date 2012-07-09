@@ -130,6 +130,16 @@ class Query(defer.Deferred):
         results = yield self._runquery(expr)
         defer.returnValue(results[0][0])
 
+    @defer.inlineCallbacks
+    def get(self, **kwargs):
+        results = yield self.filter(**kwargs)._select()
+        if len(results) == 0:
+            raise self.model.DoesNotExist()
+        elif len(results) > 1:
+            raise self.model.MultipleObjectsReturned()
+        else:
+            defer.returnValue(results[0])
+
     def _runquery(self, expression):
         return self.model.connection.run(expression)
 

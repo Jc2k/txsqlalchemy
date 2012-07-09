@@ -302,6 +302,28 @@ To fetch the 6th and 7th object::
 Negative indexing is not supported.
 
 
+Finding a single object
+=======================
+
+If you are only expecting a single row to be returned by a query then there is
+a ``get`` wrapper. It gives you a deferred that will fire with a **single**
+object. This will throw exceptions if no records are found, or if too many
+records are found (as ``errback`` if you arent using ``inlineCallbacks``)::
+
+    try:
+        kitt = yield Car.objects.get(name="Kitt")
+    except Car.DoesNotExist:
+        print "No object found"
+    except Car.MultipleObjectsReturned:
+        print "Too many objects found"
+
+You can use any expression with ``get`` that you would with ``filter``.
+
+Each table has its own ``DoesNotExist`` and ``MultibleObjectsReturned``
+exception. They are members of the model class so are available anywhere you
+are using the models.
+
+
 Updates
 =======
 

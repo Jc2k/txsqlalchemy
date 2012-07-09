@@ -4,6 +4,7 @@ import sqlalchemy
 from .query import Query
 from .connection import Connection, NoConnection
 from .columns import BaseColumn, Column, ForeignKey
+from . import exceptions
 
 class Objects(object):
     def __init__(self, model):
@@ -24,6 +25,9 @@ class Objects(object):
     def count(self):
         return self.get_query_set().count()
 
+    def get(self, **kwargs):
+        return self.get_query_set().get(**kwargs)
+
     def __getitem__(self, idx):
         return self.get_query_set()[idx]
 
@@ -40,6 +44,14 @@ class ModelType(type):
             if isinstance(col, BaseColumn):
                 columns.append(col.as_column(attr))
                 c[attr] = col
+
+        class DoesNotExist(exceptions.DoesNotExist):
+             pass
+        attrs["DoesNotExist"] = DoesNotExist
+
+        class MultipleObjectsReturned(exceptions.MultipleObjectsReturned):
+            pass
+        attrs["MultipleObjectsReturned"] = MultipleObjectsReturned
 
         attrs.setdefault("__tablename__", class_name.lower())
         attrs["__table__"] = t = sqlalchemy.Table(attrs["__tablename__"], bases[0].__metadata__, *columns)

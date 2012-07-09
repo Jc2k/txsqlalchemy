@@ -179,3 +179,21 @@ class TestCount(FixtureTestCase):
         self.assertEquals(count, 4)
 
 
+class TestGet(FixtureTestCase):
+
+    __fixture__ = fixtures.FooBarBaz
+
+    def test_multiple_objects(self):
+        d = self.FooBar.objects.get(name__contains = "o")
+        self.assertFailure(d, self.FooBar.MultipleObjectsReturned)
+
+    def test_does_not_exist(self):
+        d = self.FooBar.objects.get(name = "Doug")
+        self.assertFailure(d, self.FooBar.DoesNotExist)
+
+    @defer.inlineCallbacks
+    def test_single_object_returned(self):
+        peter = yield self.FooBar.objects.get(name = "Peter")
+        self.assertEqual(peter.name, "Peter")
+
+
