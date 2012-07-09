@@ -3,15 +3,17 @@ from sqlalchemy.sql.expression import func, between, extract, column, desc, asc,
 from twisted.internet import defer
 
 
-class Query(object):
+class Query(defer.Deferred):
 
     """ An incomplete query """
 
     def __init__(self, model, query=None):
+        defer.Deferred.__init__(self)
         self.model = model
         self.query = query
         self.offset = None
         self.limit = None
+        self.deferred = None
 
     def _clone(self):
         q = Query(self.model)
@@ -128,8 +130,11 @@ class Query(object):
         results = yield self._runquery(expr)
         defer.returnValue(results[0][0])
 
+    def _runquery(self, expression):
+        return self.model.connection.run(expression)
+
     @defer.inlineCallbacks
-    def select(self):
+    def _select(self):
         columns = [c.name for c in self.model.__table__.columns]
         expr = select([self.model.__table__])
         if self.query is not None:
@@ -146,6 +151,9 @@ class Query(object):
             final.append(r)
         defer.returnValue(final)
 
-    def _runquery(self, expression):
-        return self.model.connection.run(expression)
+    def addCallbacks(self, *args, **kwargs):
+        if not self.deferred:
+            self.deferred = self._select()
+            self.deferred.chainDeferred(self)
+        return defer.Deferred.addCallbacks(self, *args, **kwargs)
 

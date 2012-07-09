@@ -95,12 +95,12 @@ exclude(**kwargs)
 
 For example::
 
-    cars = yield MyCar.objects.filter(name="Kitt").select()
+    cars = yield MyCar.objects.filter(name="Kitt")
 
 The result of a filter or exclude operation is a queryset, which can be further
 filtered. This is called chaining::
 
-    cars = yield MyCar.objects.filter(name="Kitt").exclude(year=2010).select()
+    cars = yield MyCar.objects.filter(name="Kitt").exclude(year=2010)
 
 Each time you apply a filter a brand-new Queryset is created.
 

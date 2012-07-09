@@ -12,7 +12,7 @@ class TestRelationships(FixtureTestCase):
 
     @defer.inlineCallbacks
     def test_children_all(self):
-        drinks = yield self.Drink.objects.all().select()
+        drinks = yield self.Drink.objects.all()
         drink = drinks[0]
         #ingredients = yield drink.ingredients.all()
 
@@ -39,7 +39,7 @@ class TestSave(TestCase):
         foo.a = '1'
         yield foo.save()
 
-        results = yield self.Model.objects.all().select()
+        results = yield self.Model.objects.all()
         self.assertEqual(results[0].a, '1')
 
     @defer.inlineCallbacks
@@ -48,14 +48,14 @@ class TestSave(TestCase):
         foo.a = '1'
         yield foo.save()
 
-        results = yield self.Model.objects.all().select()
+        results = yield self.Model.objects.all()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].a, '1')
 
         results[0].a = '234'
         yield results[0].save()
 
-        results = yield self.Model.objects.all().select()
+        results = yield self.Model.objects.all()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].a, '234')
 
@@ -94,14 +94,14 @@ class TestInsert(TestCase):
             abx = Column(String)
         yield Foo.create()
 
-        results = yield Foo.objects.all().select()
+        results = yield Foo.objects.all()
         self.assertEqual(len(results), 0)
 
         yield Foo.insert(abx="1")
-        results = yield Foo.objects.all().select()
+        results = yield Foo.objects.all()
         self.assertEqual(len(results), 1)
         
         yield Foo.insert(abx="33")
-        results = yield Foo.objects.all().select()
+        results = yield Foo.objects.all()
         self.assertEqual(len(results), 2)
  
