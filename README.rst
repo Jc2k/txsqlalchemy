@@ -88,9 +88,9 @@ continue to apply filters to it.
 
 To get a subset of rows, use the you can use the following object manager methods:
 
-filter(**kwargs)
+filter(\*\*kwargs)
     Returns a new Queryset containing objects that match the given kwargs
-exclude(**kwargs)
+exclude(\*\*kwargs)
     Returns a new Queryset containing objects that do *not* match the given kwargs
 
 For example::
@@ -122,20 +122,118 @@ Here are the built in lookup types.
 
 exact
     An exact equals match. This is the default if you don't specify a lookup type.
-iexact
-    Case insensitive exact match. 
+
+    This generates SQL like::
+
+        SELECT ... WHERE name = 'Kitt';
+
+    There is a case insensitive version you can use::
+
+        cars = yield Car.objects.filter(name__iexact="kitt") 
+
 contains
+    Matches if a field contains the string passed to the filter::
+
+        cars = yield Car.objects.filter(name__contains="it")
+
+    This generates SQL like::
+
+        SELECT .. WHERE name LIKE '%it%';
+
+    There is a case insensitive version you can use - ``icontains``.
+
+    When using SQLite remember that SQLite doesn't support case sensitive
+    ``LIKE`` statements. In that case, ``contains`` will have the same
+    behaviour as ``icontains``.
+
 startswith
+    Matches if a field starts with the string passed to the filter::
+
+        cars = yield Car.objects.filter(name__startswith="K")
+
+    This generates SQL like::
+
+        SELECT ... WHERE name LIKE 'K%';
+
+    There is a case insensitive version you can use - ``istartswith``.
+
+    When using SQLite remember that SQLite doesn't support case sensitive
+    ``LIKE`` statements. In that case, ``startswith`` will have the same
+    behaviour as ``istartswith``.
+
 endswith
+    Matches if a field ends with the string passed to the filter::
+
+        cars = yield Car.objects.filter(name__startswith="tt")
+
+    This generates SQL like::
+
+        SELECT ... WHERE name LIKE '%tt';
+
+    There is a case insensitive version you can use - ``iendswith``.
+
+    When using SQLite remember that SQLite doesn't support case sensitive
+    ``LIKE`` statements. In that case, ``endswith`` will have the same
+    behaviour as ``iendswith``.
+
 in
+    Matches if a field matches exactly one of the items in the list. For
+    example, the query::
+
+        cars = yield Car.objects.filter(id__in=[1, 3, 4])
+
+    Which would be equivalent to SQL like::
+
+        SELECT ... WHERE id IN (1, 3, 4);
+
 gt
+    Matches if the value of the field is greater than the value passed to the
+    filter::
+
+        cars = yield Car.objects.filter(year_gt = 1982)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE year > 1982
+
 gte
+    Matches if the value of the field is greater than or equal to the value
+    passed to the filter::
+
+        cars = yield Car.objects.filter(year_gte = 1983)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE year >= 1983
+
 lt
+    Matches if the value of the field is less than the value passed to the
+    filter::
+
+        cars = yield Car.objects.filter(year_lt = 1987)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE year < 1987
+
 lte
+    Matches if the value of the field is less than or equal to the value
+    passed to the filter::
+
+        cars = yield Car.objects.filter(year_lte = 1986)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE year <= 1986
+
 range
     Match values betwwen a range (inclusive). Example::
 
         cars = yield Car.objects.filter(year__between=(1982, 1986))
+
+    This will generate SQL like::
+
+        SELECT ... WHERE year BETWEEN 1982 and 1986
 
 year
     This is only valid on date fields and lets you filter on just the year
@@ -143,17 +241,29 @@ year
 
         entries = yield Entry.objects.filter(pub_date__year=2005)
 
+    This will generate SQL like::
+
+        SELECT ... WHERE EXTRACT('year' FROM pub_date) = 2005
+
 month
     This is only valid on date fields and lets you filter on just the month
     component of the date::
 
-        entries = yield Entry.objects.filter(pub_date__month=2005)
+        entries = yield Entry.objects.filter(pub_date__month=12)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE EXTRACT('month' FROM pub_date) = 12
 
 day
     This is only valid on date fields and lets you filter on just the day
     component of the date::
 
-        entries = yield Entry.objects.filter(pub_date__day=2005)
+        entries = yield Entry.objects.filter(pub_date__day=13)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE EXTRACT('day' FROM pub_date) = 13
 
 week_day
     This is only valid on date fields and lets you filter on just the week day
@@ -161,10 +271,18 @@ week_day
 
         entries = yield Entry.objects.filter(pub_date__week_day=6)
 
+    This will generate SQL like::
+
+        SELECT ... WHERE EXTRACT('dow' FROM pub_date) = 6
+
 isnull
     If you pass ``True`` it will filter for ``NULL`` rows, and for ``False`` it will filter for ``NOT NULL``::
 
         entries = yield Entry.objects.filter(pub_date__isnull=True)
+
+    This will generate SQL like::
+
+        SELECT ... WHERE pub_date IS NULL;
 
 
 Limiting results
@@ -189,9 +307,7 @@ Updates
 
 You can write an update query::
 
-    @defer.inlineCallbacks
-    def update_some_things():
-        yield MyCar.objects.filter(name="Kitt").update(cpu="Arm Cortex")
+    yield MyCar.objects.filter(name="Kitt").update(cpu="Arm Cortex")
 
 
 Delete
@@ -199,9 +315,5 @@ Delete
 
 You can delete stuff::
 
-    @defer.inlineCallbacks
-    def delete_some_things():
-        yield MyCar.objects.filter(type="SUV").delete()
-        print "All SUV's have been from the world"
-
+    yield MyCar.objects.filter(type="SUV").delete()
 
