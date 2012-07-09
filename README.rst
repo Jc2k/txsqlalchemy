@@ -12,6 +12,11 @@ layer to execute SQL.
 
 It has Django leanings because that's what I like. Sorry.
 
+Any examples below where you see use of ``yield`` is a situation where
+txsqlalchemy returns a Deferred or Deferred like objects. You can use
+``addCallback`` to build asynchronous database operations. Within a function
+decorated with ``defer.inlineCallbacks`` you can yield as the examples do.
+
 
 Table definition
 ================
@@ -35,13 +40,13 @@ You can create a table like this::
 
     class Engine(Base):
         size = Column(String)
-    Engine.create()
+    yield Engine.create()
 
 This returns a deferred so you can wait for the table to be created.
 
 Equally, dropping a table looks like this::
 
-    Engine.drop()
+    yield Engine.drop()
 
 And again.. it returns a deferred.
 
@@ -62,44 +67,121 @@ Behind the scenes this will trigger an ``INSERT`` SQL query. This happens when
 The ``save`` method returns a ``Deferred``. The callback doesn't have a specifc
 return value.
 
-To create an object and save it one go you can use the ``insert`` method.
+To create an object and save it one go you can use the ``insert`` method::
 
     b = yield Blog.insert(name="Ash Blog", tagline="All the latest Ash news")
 
 
+Querying
+========
+
+Like Django txsqlalchemy has a Manager object on each model for table-level
+operations. By default it is called ``objects``.
+
+Retrieving all objects is simple - you ask the Manager for ``all()``. It gives
+you a deferred which will eventually give you a list of objects you require::
+
+    all_entries = yield Entry.objects.all()
+
+If you don't yield the object it will continue to act as a Queryset and you can
+continue to apply filters to it.
+
+To get a subset of rows, use the you can use the following object manager methods:
+
+filter(**kwargs)
+    Returns a new Queryset containing objects that match the given kwargs
+exclude(**kwargs)
+    Returns a new Queryset containing objects that do *not* match the given kwargs
+
+For example::
+
+    cars = yield MyCar.objects.filter(name="Kitt").select()
+
+The result of a filter or exclude operation is a queryset, which can be further
+filtered. This is called chaining::
+
+    cars = yield MyCar.objects.filter(name="Kitt").exclude(year=2010).select()
+
+Each time you apply a filter a brand-new Queryset is created.
+
+Querys are lazy. Creating or refiing a query doesn't involve any database
+activity.
+
 Filters
-=======
+-------
 
-Consider you were writing a twisted view::
+The parameters you pass to `` filter`` and ``exclude`` can be just exact matches like this::
 
-    class SomeView(HtmlResource):
+    cars = yield Car.objects.filter(name="Kitt")
 
-        @defer.inlineCallbacks
-        def content(self, ...):
-            rows = yield MyCar.objects.filter(name="Kitt").select()
-            for row in rows:
-                print row.name, row.mfr, row.date
+But they can also be one of several over lookup types. For example::
 
-You can also exclude rows::
+    cars = yield Car.objects.filter(year__lt = 2010)
 
-    class SomeView(HtmlResource):
+Here are the built in lookup types.
 
-        @defer.inlineCallbacks
-        def content(self, ...):
-            rows = yield MyCar.objects.exclude(name="Kitt").select()
-            for row in rows:
-                print row.name, row.mfr, row.date
+exact
+    An exact equals match. This is the default if you don't specify a lookup type.
+iexact
+    Case insensitive exact match. 
+contains
+startswith
+endswith
+in
+gt
+gte
+lt
+lte
+range
+    Match values betwwen a range (inclusive). Example::
+
+        cars = yield Car.objects.filter(year__between=(1982, 1986))
+
+year
+    This is only valid on date fields and lets you filter on just the year
+    component of the date::
+
+        entries = yield Entry.objects.filter(pub_date__year=2005)
+
+month
+    This is only valid on date fields and lets you filter on just the month
+    component of the date::
+
+        entries = yield Entry.objects.filter(pub_date__month=2005)
+
+day
+    This is only valid on date fields and lets you filter on just the day
+    component of the date::
+
+        entries = yield Entry.objects.filter(pub_date__day=2005)
+
+week_day
+    This is only valid on date fields and lets you filter on just the week day
+    of the date::
+
+        entries = yield Entry.objects.filter(pub_date__week_day=6)
+
+isnull
+    If you pass ``True`` it will filter for ``NULL`` rows, and for ``False`` it will filter for ``NOT NULL``::
+
+        entries = yield Entry.objects.filter(pub_date__isnull=True)
 
 
-And of course, filters can be chained::
+Limiting results
+----------------
 
-    class SomeView(HtmlResource):
+You can use the Python slice syntax to limit your Query to a certain number of
+results. These map to the SQL ``LIMIT`` and ``OFFSET`` clauses.
 
-        @defer.inlineCallbacks
-        def content(self, ...):
-            rows = yield MyCar.objects.filter(name="Kitt").exclude(year=2010).select()
-            for row in rows:
-                print row.name, row.mfr, row.date
+To only fetch the first 5 objects::
+
+    cars = yield Car.objects.all()[:5]
+
+To fetch the 6th and 7th object::
+
+    cars = yield Car.objects.all()[5:7]
+
+Negative indexing is not supported.
 
 
 Updates
