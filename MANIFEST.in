@@ -1,0 +1,5 @@
+recursive-include txsqlalchemy *
+recursive-include docs *
+include *
+global-exclude *.pyc
+
