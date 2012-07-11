@@ -16,6 +16,13 @@ class TestFiltering(FixtureTestCase):
         self.assertEqual(results[0].name, "John")
 
     @defer.inlineCallbacks
+    def test_multiple_column_types(self):
+        results = yield self.FooBar.objects.filter(name="John")
+        self.assertEqual(isinstance(results[0].id, int), True)
+        self.assertEqual(isinstance(results[0].name, basestring), True)
+        self.assertEqual(isinstance(results[0].date, datetime.datetime), True)
+
+    @defer.inlineCallbacks
     def test_exact(self):
         results = yield self.FooBar.objects.filter(name__exact="John")
         self.assertEqual(len(results), 1)

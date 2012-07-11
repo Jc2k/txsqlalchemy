@@ -156,8 +156,12 @@ class Query(defer.Deferred):
         results = yield self._runquery(expr)
         final = []
         for result in results:
+            constructargs = {}
+            for c, v in zip(self.model.__table__.columns, result):
+                p = c.type._cached_result_processor(self.model.connection.dialect, c.type)
+                constructargs[c.name] = p(v) if p else v
             r = self.model()
-            r._construct(**dict(zip(columns, result)))
+            r._construct(**constructargs)
             final.append(r)
         defer.returnValue(final)
 
