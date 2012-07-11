@@ -204,3 +204,23 @@ class TestGet(FixtureTestCase):
         self.assertEqual(peter.name, "Peter")
 
 
+class TestOrdering(FixtureTestCase):
+
+    __fixture__ = fixtures.FooBarBaz
+
+    @defer.inlineCallbacks
+    def test_order_ascending(self):
+        rows = yield self.FooBar.objects.all().order_by("name")
+        self.assertEqual(rows[0].name, "Alex")
+        self.assertEqual(rows[1].name, "John")
+        self.assertEqual(rows[2].name, "Peter")
+        self.assertEqual(rows[3].name, "Timothy")
+
+    @defer.inlineCallbacks
+    def test_order_descending(self):
+        rows = yield self.FooBar.objects.all().order_by("-name")
+        self.assertEqual(rows[0].name, "Timothy")
+        self.assertEqual(rows[1].name, "Peter")
+        self.assertEqual(rows[2].name, "John")
+        self.assertEqual(rows[3].name, "Alex")
+

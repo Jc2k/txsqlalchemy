@@ -285,6 +285,17 @@ isnull
         SELECT ... WHERE pub_date IS NULL;
 
 
+Ordering
+--------
+
+You can order your filter results using the ``order_by`` function::
+
+    cars = yield Entry.objects.filter(year__lt=2012).order_by('-year')
+
+This will filter out cars from 2012 or later and sort the remaining cars by
+year. The ``-`` prefix indicates a descending search order.
+
+
 Limiting results
 ----------------
 

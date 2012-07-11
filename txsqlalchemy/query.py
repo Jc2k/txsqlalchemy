@@ -13,6 +13,7 @@ class Query(defer.Deferred):
         self.query = query
         self.offset = None
         self.limit = None
+        self._order_by = None
         self.deferred = None
 
     def _clone(self):
@@ -84,19 +85,19 @@ class Query(defer.Deferred):
         q.query = query
         return q
 
-    def order_by(self, terms):
+    def order_by(self, *terms):
         q = self._clone()
 
         columns = []
-        for t in terms.split(" "):
-            desc = False
+        for t in terms:
+            order = asc
             if t[0] in "+-":
                 order = desc if t[0] == '-' else asc
                 t = t[1:]
             c = order(column(t))
             columns.append(c)
 
-        q.query = self.query.order_by(*c)
+        q._order_by = columns
 
         return q
 
@@ -153,6 +154,8 @@ class Query(defer.Deferred):
             expr = expr.limit(self.limit)
         if self.offset:
             expr = expr.offset(self.offset)
+        if self._order_by:
+            expr = expr.order_by(*self._order_by)
         results = yield self._runquery(expr)
         final = []
         for result in results:
@@ -170,4 +173,5 @@ class Query(defer.Deferred):
             self.deferred = self._select()
             self.deferred.chainDeferred(self)
         return defer.Deferred.addCallbacks(self, *args, **kwargs)
+
 

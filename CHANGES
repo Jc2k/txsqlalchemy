@@ -9,6 +9,8 @@ CHANGES
 
 - Fix types of data after fetching from model
 
+- Support order by
+
 
 0.0.0 (2012-07-10)
 ------------------
