@@ -24,6 +24,7 @@ class TestSave(TestCase):
         Base = model_base()
         Base.bind("sqlite://")
         class Foo(Base):
+            id = Column(Integer, primary_key=True)
             a = Column(String)
         yield Foo.create()
         self.Model = Foo

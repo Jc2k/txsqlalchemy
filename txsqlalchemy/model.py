@@ -81,8 +81,9 @@ class _Model(object):
         if self._is_new_record:
             yield self.insert(**self._changes)
         else:
-           #.where(self.query)
            expr =  self.__table__.update().values(**self._changes)
+           column_matches = [c == int(getattr(self, c.name)) for c in self.__table__.primary_key]
+           expr = expr.where(sqlalchemy.and_(*column_matches))
            yield self.connection.run(expr)
 
         self._changes = {}
