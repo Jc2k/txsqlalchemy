@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-0.0.1 (unreleased)
+0.0.1 (2012-07-12)
 ------------------
 
 - Fix save() not issuing a correct ``UPDATE`` statement
