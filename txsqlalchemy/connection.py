@@ -48,12 +48,16 @@ class Connection(object):
 
         return dialect.execute_sequence_format(parameters)
 
-    def run(self, expression, *args, **kwargs):
+    def run(self, expression, retval="selected"):
         compiled = expression.compile(dialect=self.dialect)
         bound = self._bind(compiled, self.dialect)
         bound = bound[0] if bound else []
-        #print str(compiled), bound
-        return self.pool.runQuery(str(compiled), bound, *args, **kwargs)
+        def _run(cursor, sql, vars):
+            rows = cursor.execute(sql, vars)
+            if retval == "lastrowid":
+                return cursor.lastrowid
+            return [r for r in rows]
+        return self.pool.runInteraction(_run, str(compiled), bound)
 
 
 class NoConnection(object):

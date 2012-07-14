@@ -79,14 +79,16 @@ class _Model(object):
     @defer.inlineCallbacks
     def save(self):
         if self._is_new_record:
-            yield self.insert(**self._changes)
+            c = [c for c in self.__table__.primary_key][0]
+            lastrowid = yield self.insert(**self._changes)
+            self._changes[c.name] = lastrowid
         else:
            expr =  self.__table__.update().values(**self._changes)
            column_matches = [c == int(getattr(self, c.name)) for c in self.__table__.primary_key]
            expr = expr.where(sqlalchemy.and_(*column_matches))
            yield self.connection.run(expr)
 
-        self._changes = {}
+        #self._changes = {}
         self._is_new_record = False
 
     @classmethod
@@ -108,7 +110,7 @@ class _Model(object):
     @classmethod
     def insert(cls, **kwargs):
         expression = cls.__table__.insert().values(**kwargs)
-        return cls.connection.run(expression)
+        return cls.connection.run(expression, retval="lastrowid")
 
 
 def model_base():

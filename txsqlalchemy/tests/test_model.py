@@ -60,6 +60,18 @@ class TestSave(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].a, '234')
 
+    @defer.inlineCallbacks
+    def test_id(self):
+        foo = self.Model()
+        foo.a = '1'
+        yield foo.save()
+        self.assertEqual(foo.id, 1)
+
+        foo = self.Model()
+        foo.a = 'zzzz'
+        yield foo.save()
+        self.assertEqual(foo.id, 2)
+
 
 
 class TestCreate(TestCase):
