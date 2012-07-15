@@ -32,40 +32,28 @@ class Query(defer.Deferred):
                 column = getattr(self.model.__table__.c, k)
             except AttributeError:
                 raise KeyError("Invalid key '%s'" % k)
-           
-            if comparison == "exact":
-                filters.append(column == v)
-            elif comparison == "day":
-                filters.append(extract('day', column) == v)
-            elif comparison == "month":
-                filters.append(extract('month', column) == v)
-            elif comparison == "year":
-                filters.append(extract('year', column) == v)
-            elif comparison == "week_date":
-                filters.append(extract('dow', column) == v)
-            elif comparison == "in":
-                filters.append(column.in_(v))
-            elif comparison == "contains":
-                filters.append(column.contains(v))
-            elif comparison == "icontains":
-                filters.append(column.ilike("%" + v + "%"))
-            elif comparison == "startswith":
-                filters.append(column.startswith(v))
-            elif comparison == "istartswith":
-                filters.append(column.ilike(v + "%"))
-            elif comparison == "endswith":
-                filters.append(column.endswith(v))
-            elif comparison == "iendswith":
-                filters.append(column.ilike("%" + v))
-            elif comparison == "range":
-                filters.append(between(column, v[0], v[1]))
-            elif comparison == "isnull":
-                if v:
-                    filters.append(column == None)
-                else:
-                    filters.append(column != None)
-            else:
+
+            lookups = {
+                "exact": lambda c, v: c == v,
+                "day": lambda c, v: extract('day', c) == v,
+                "month": lambda c, v: extract('month', c) == v,
+                "year": lambda c, v: extract('year', c) == v,
+                "week_date": lambda c, v: extract('dow', c) == v,
+                "in": lambda c, v: c.in_(v),
+                "contains": lambda c, v: c.contains(v),
+                "icontains": lambda c, v: c.ilike("%" + v + "%"),
+                "startswith": lambda c, v: c.startswith(v),
+                "istartswith": lambda c, v: c.ilike(v + "%"),
+                "endswith": lambda c, v: c.endswith(v),
+                "iendswith": lambda c, v: c.ilike("%" + v),
+                "range": lambda c, v: between(c, v[0], v[1]),
+                "isnull": lambda c, v: c == None if v else c != None,
+                }
+
+            if not comparison in lookups:
                 raise KeyError("Invalid comparison type %s" % comparison)
+
+            filters.append(lookups[comparison](column, v))
 
         return and_(*filters)
 
