@@ -7,6 +7,9 @@ class BaseColumn(object):
     def _construct(self, instance, value):
         instance._changes[self.name] = value
 
+    def _raw(self, instance):
+        return instance._changes[self.name]
+
     def as_column(self, name):
         self.column = sqlalchemy.Column(name, *self.args, **self.kwargs)
         self.name = name
@@ -47,15 +50,18 @@ class ForeignChildrenProxy(object):
         return self.get_query_set().count()
 
 
-class ForeignKey(object):
+class ForeignKey(BaseColumn):
 
     def __init__(self, *args, **kwargs):
         self.args = [sqlalchemy.Integer, sqlalchemy.ForeignKey(args[0])] + list(args[1:])
         self.kwargs = kwargs
 
+    def _raw(self, instance):
+        return super(ForeignKey, self)._raw(instance).id
+
     def __set__(self, instance, value):
-        raise AttributeError("Cannot assign to collections")
+        instance._changes[self.name] = value
 
     def __get__(self, instance, owner):
-        return ForeignChildrenProxy(instance)
+        return instance._changes[self.name]
 

@@ -57,6 +57,7 @@ class Connection(object):
             if retval == "lastrowid":
                 return cursor.lastrowid
             return [r for r in rows]
+        #print str(compiled), bound
         return self.pool.runInteraction(_run, str(compiled), bound)
 
 

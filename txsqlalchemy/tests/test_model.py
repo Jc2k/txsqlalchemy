@@ -104,6 +104,7 @@ class TestInsert(TestCase):
         Base = model_base()
         Base.bind("sqlite://")
         class Foo(Base):
+            idx = Column(Integer, primary_key=True)
             abx = Column(String)
         yield Foo.create()
 

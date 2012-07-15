@@ -78,12 +78,15 @@ class _Model(object):
 
     @defer.inlineCallbacks
     def save(self):
+        chgs = dict ((k, self.__columns__[k]._raw(self)) for k in self._changes.keys())
         if self._is_new_record:
+            expression = self.__table__.insert().values(**chgs)
+            lastrowid = yield self.connection.run(expression, retval="lastrowid")
+
             c = [c for c in self.__table__.primary_key][0]
-            lastrowid = yield self.insert(**self._changes)
             self._changes[c.name] = lastrowid
         else:
-           expr =  self.__table__.update().values(**self._changes)
+           expr =  self.__table__.update().values(**chgs)
            column_matches = [c == int(getattr(self, c.name)) for c in self.__table__.primary_key]
            expr = expr.where(sqlalchemy.and_(*column_matches))
            yield self.connection.run(expr)
@@ -109,8 +112,8 @@ class _Model(object):
 
     @classmethod
     def insert(cls, **kwargs):
-        expression = cls.__table__.insert().values(**kwargs)
-        return cls.connection.run(expression, retval="lastrowid")
+        m = cls(**kwargs)
+        return m.save().addCallback(lambda res: m)
 
 
 def model_base():
